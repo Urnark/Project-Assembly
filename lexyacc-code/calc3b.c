@@ -54,29 +54,29 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             printf("\tneg\n");
             break;
-	case FACT:
-  	    ex(p->opr.op[0]);
-	    printf("\tfact\n");
-	    break;
-	case LNTWO:
-	    ex(p->opr.op[0]);
-	    printf("\lntwo\n");
-	    break;
+        case FACT:
+            ex(p->opr.op[0]);
+            printf("\tfact\n");
+            break;
+        case LNTWO:
+            ex(p->opr.op[0]);
+            printf("\lntwo\n");
+            break;
         default:
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
-	    case GCD:   printf("\tgcd\n"); break;
-            case '+':   printf("\tadd\n"); break;
-            case '-':   printf("\tsub\n"); break; 
-            case '*':   printf("\tmul\n"); break;
-            case '/':   printf("\tdiv\n"); break;
-            case '<':   printf("\tcompLT\n"); break;
-            case '>':   printf("\tcompGT\n"); break;
-            case GE:    printf("\tcompGE\n"); break;
-            case LE:    printf("\tcompLE\n"); break;
-            case NE:    printf("\tcompNE\n"); break;
-            case EQ:    printf("\tcompEQ\n"); break;
+            case GCD:   printf("\tgcd\n"); break;
+                case '+':   printf("\tadd\n"); break;
+                case '-':   printf("\tsub\n"); break; 
+                case '*':   printf("\tmul\n"); break;
+                case '/':   printf("\tdiv\n"); break;
+                case '<':   printf("\tcompLT\n"); break;
+                case '>':   printf("\tcompGT\n"); break;
+                case GE:    printf("\tcompGE\n"); break;
+                case LE:    printf("\tcompLE\n"); break;
+                case NE:    printf("\tcompNE\n"); break;
+                case EQ:    printf("\tcompEQ\n"); break;
             }
         }
     }
