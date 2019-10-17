@@ -1,4 +1,14 @@
 a=12;
 b=30;
-c=a+b;
-print c;
+if(a < b) {
+    print a;
+    print b;
+}
+
+if(b >= a){
+    print b;
+}
+
+if(a != 0) {
+    print a+b;
+}

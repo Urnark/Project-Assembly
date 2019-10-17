@@ -33,7 +33,7 @@ void yyerror(char *);
 "gcd"           return GCD;
 "lntwo"         return LNTWO;
 
-[ \t\n]+        ;       /* ignore whitespace */
+[ \t\n\r]+        ;       /* ignore whitespace */
 
 .               yyerror("Unknown character");
 %%
