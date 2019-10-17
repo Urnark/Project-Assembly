@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "calc3.h"
-#include "artefacts/y.tab.h"
+#include "y.tab.h"
 
 static int lbl;
 
@@ -66,7 +66,7 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
-            case GCD:   printf("\tgcd\n"); break;
+                case GCD:   printf("\tgcd\n"); break;
                 case '+':   printf("\tadd\n"); break;
                 case '-':   printf("\tsub\n"); break; 
                 case '*':   printf("\tmul\n"); break;
