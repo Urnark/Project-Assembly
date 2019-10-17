@@ -1,5 +1,5 @@
 
-PROG = compiler
+PROG = bin/compiler
 COMPILER_C = calc3i.c
 
 LEXTAXX_DIR = lexyacc-code
