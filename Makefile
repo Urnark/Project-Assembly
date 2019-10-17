@@ -1,6 +1,6 @@
 
 PROG = compiler
-COMPILER_C = calc3b.c
+COMPILER_C = calc3i.c
 
 LEXTAXX_DIR = lexyacc-code
 ARTIFACTS_DIR = $(LEXTAXX_DIR)/artefacts
@@ -31,3 +31,6 @@ $(PROG): #$(OBJS)
 	gcc -c $(ARTIFACTS_DIR)/y.tab.c -o $(ARTIFACTS_DIR)/y.tab.o
 	gcc $(ARTIFACTS_DIR)/y.tab.o $(ARTIFACTS_DIR)/lex.yy.o $(LEXTAXX_DIR)/$(COMPILER_C) -o $(PROG)
 	#gcc $^ $(LEXTAXX_DIR)/$(COMPILER_C) -o $(PROG)
+
+clean:
+	/bin/rm $(PROG) $(ARTIFACTS_DIR)/y.tab.c $(ARTIFACTS_DIR)/y.tab.o $(ARTIFACTS_DIR)/lex.yy.c $(ARTIFACTS_DIR)/lex.yy.o

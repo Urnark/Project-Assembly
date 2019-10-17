@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "calc3.h"
-#include "y.tab.h"
+#include "artefacts/y.tab.h"
 
 static int lbl;
 
@@ -10,10 +10,10 @@ int ex(nodeType *p) {
     if (!p) return 0;
     switch(p->type) {
     case typeCon:       
-        printf("\tpush\t%d\n", p->con.value); 
+        printf("\tpushq\t$%d\n", p->con.value);
         break;
     case typeId:        
-        printf("\tpush\t%c\n", p->id.i + 'a'); 
+        printf("\tpushq\t%c\n", p->id.i + 'a');
         break;
     case typeOpr:
         switch(p->opr.oper) {
@@ -48,7 +48,7 @@ int ex(nodeType *p) {
             break;
         case '=':       
             ex(p->opr.op[1]);
-            printf("\tpop\t%c\n", p->opr.op[0]->id.i + 'a');
+            printf("\tpopq\t%c\n", p->opr.op[0]->id.i + 'a');
             break;
         case UMINUS:    
             ex(p->opr.op[0]);
@@ -67,7 +67,12 @@ int ex(nodeType *p) {
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
                 case GCD:   printf("\tgcd\n"); break;
-                case '+':   printf("\tadd\n"); break;
+                case '+':
+                    printf("\tpopq\t%s\n", "%r11");
+                    printf("\tpopq\t%s\n", "%r12");
+                    printf("\taddq\t%s,\t%s\n", "%r11", "%r12");
+                    printf("\tpushq\t%s\n", "%r12");
+                    break;
                 case '-':   printf("\tsub\n"); break; 
                 case '*':   printf("\tmul\n"); break;
                 case '/':   printf("\tdiv\n"); break;
