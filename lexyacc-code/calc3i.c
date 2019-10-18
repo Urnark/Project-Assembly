@@ -29,6 +29,8 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             if (p->opr.nops > 2) {
                 /* if else */
+                printf("\tpopq\t%s\n", "%r11"); // I think this should be here
+                printf("\tcompq\t%s,\t%s\n", "%1", "%r11"); // I think this should be here
                 printf("\tjz\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("\tjmp\tL%03d\n", lbl2 = lbl++);
@@ -37,6 +39,8 @@ int ex(nodeType *p) {
                 printf("L%03d:\n", lbl2);
             } else {
                 /* if */
+                printf("\tpopq\t%s\n", "%r11"); // I think this should be here
+                printf("\tcompq\t%s,\t%s\n", "%1", "%r11"); // I think this should be here
                 printf("\tjz\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("L%03d:\n", lbl1);
