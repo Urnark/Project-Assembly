@@ -297,9 +297,10 @@ int ex(nodeType *p) {
                     printf("\tpopq\t%s\n", "%r11"); // b
                     printf("\tpopq\t%s\n", "%r12"); // a
                     printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetge\t%s\n", "%13"); // set %r13 to 1 if a >= b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    printf("\tje then\n"); // jump condition
+                    printf("\tmovq\t%s,\t%s\n", "$1", "%r13");
+                    printf("then:\tmovq\t%s,\t%s\n", "$0", "%r13");
+                    printf("\tpushq\t%s\n", "%r13"); 
                     break;
             }
         }
