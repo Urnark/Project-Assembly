@@ -4,6 +4,17 @@
 
 static int lbl;
 
+void compare(const char* ope)
+{
+    printf("\tpopq\t%s\n", "%r11"); // b
+    printf("\tpopq\t%s\n", "%r12"); // a
+    printf("\tcmpq\t%s,\t%s\n", "%r11", "%r12"); // compare b and a 
+    // Migth be able to change %r13 to %r11 or %r12
+    printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // set %r13 to zero
+    printf("\tset%s\t%s\n", ope, "%r13b"); // set %r13 to 1 if a < b else 0
+    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+}
+
 int ex(nodeType *p) {
     int lbl1, lbl2;
 
@@ -20,7 +31,9 @@ int ex(nodeType *p) {
         case WHILE:
             printf("L%03d:\n", lbl1 = lbl++);
             ex(p->opr.op[0]);
-            printf("\tjz\tL%03d\n", lbl2 = lbl++);
+            printf("\tpopq\t%s\n", "%r11"); // I think this should be here
+            printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+            printf("\tje\tL%03d\n", lbl2 = lbl++);
             ex(p->opr.op[1]);
             printf("\tjmp\tL%03d\n", lbl1);
             printf("L%03d:\n", lbl2);
@@ -30,8 +43,8 @@ int ex(nodeType *p) {
             if (p->opr.nops > 2) {
                 /* if else */
                 printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcompq\t%s,\t%s\n", "%1", "%r11"); // I think this should be here
-                printf("\tjz\tL%03d\n", lbl1 = lbl++);
+                printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+                printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("\tjmp\tL%03d\n", lbl2 = lbl++);
                 printf("L%03d:\n", lbl1);
@@ -40,8 +53,8 @@ int ex(nodeType *p) {
             } else {
                 /* if */
                 printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcompq\t%s,\t%s\n", "%1", "%r11"); // I think this should be here
-                printf("\tjz\tL%03d\n", lbl1 = lbl++);
+                printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+                printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("L%03d:\n", lbl1);
             }
@@ -69,7 +82,7 @@ int ex(nodeType *p) {
             printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // x
             printf("\tcmpq\t%s,\t%s;\tje out\n", "%r11", "$0");
             printf("\tmovq\t%s,\t%s\n", "$1", "%r13");  // i for loop
-            printf("loop:\tcmpq\t%s,\t%s;\tjg then\n", "%r11", "%13"); // compare i <= n
+            printf("loop:\tcmpq\t%s,\t%s;\tjg then\n", "%r11", "%r13"); // compare i <= n
             printf("\timul\t%s,\t%s\n", "%r13", "%r12"); // x = x * i
             printf("\tincq\t%s\n", "%r13"); // i++
             printf("\tjmp loop\n");
@@ -91,7 +104,7 @@ int ex(nodeType *p) {
                     printf("\tje then\n"); 
                     printf("\tcmpq\t%s,\t%s\n", "%r12", "$0");
                     printf("\tje end\n"); 
-                    printf("\tcmpq\t%s,\t%s;\tjle low\n", "%r11", "%12"); // compare b and a 
+                    printf("\tcmpq\t%s,\t%s;\tjle low\n", "%r11", "%r12"); // compare b and a 
                     //a > b
                     printf("\tsubq\t%s,\t%s\n", "%r11", "%r12");
                     printf("\tjmp loop\n");
@@ -128,49 +141,23 @@ int ex(nodeType *p) {
                     printf("\tpushq\t%s\n", "%rdx"); //afterwards remainder
                     break;
                 case '<': // a < b 
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a 
-                    // Migth be able to change %r13 to %r11 or %r12
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetl\t%s\n", "%13"); // set %r13 to 1 if a < b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    compare("l");
                     break;
                 case '>': // a > b 
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a 
-                    // Migth be able to change %r13 to %r11 or %r12
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetg\t%s\n", "%13"); // set %r13 to 1 if a > b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    compare("g");
                     break;
                 case GE: // a >= b
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetge\t%s\n", "%13"); // set %r13 to 1 if a >= b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    compare("ge");
                     break;
                 case LE:
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetle\t%s\n", "%13"); // set %r13 to 1 if a >= b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    compare("le");
                     break;
                 case NE: // a != b
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tsetne\t%s\n", "%13"); // set %r13 to 1 if a != b else 0
-                    printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
+                    compare("ne");
                     break;
-                case EQ: 
-                    printf("\tpopq\t%s\n", "%r11"); // b
+                case EQ:
+                    compare("e");
+                    /*printf("\tpopq\t%s\n", "%r11"); // b
                     printf("\tpopq\t%s\n", "%r12"); // a
                     printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
                     printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
@@ -179,7 +166,7 @@ int ex(nodeType *p) {
                     printf("\tjmp out\n"); 
                     printf("then:\tmovq\t%s,\t%s\n", "$0", "%r13");
                     printf("\tjmp out\n"); 
-                    printf("\tout:pushq\t%s\n", "%r13"); 
+                    printf("\tout:pushq\t%s\n", "%r13");*/
                     break;
             }
         }
