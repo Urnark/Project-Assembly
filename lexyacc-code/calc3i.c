@@ -65,7 +65,16 @@ int ex(nodeType *p) {
             break;
         case FACT:
             ex(p->opr.op[0]);
-            printf("\tfact\n");
+            printf("\tpopq\t%s\n", "%r11"); // n!
+            printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // x
+            printf("\tcmpq\t%s,\t%s;\tje out\n", "%r11", "$0");
+            printf("\tmovq\t%s,\t%s\n", "$1", "%r13");  // i for loop
+            printf("loop:\tcmpq\t%s,\t%s;\tjg then\n", "%r11", "%13"); // compare i <= n
+            printf("\timul\t%s,\t%s\n", "%r13", "%r12"); // x = x * i
+            printf("\tincq\t%s\n", "%r13"); // i++
+            printf("\tjmp loop\n");
+            printf("then:\tpushq\t%s\n", "%r12"); // push x
+            printf("out:\tpushq\t%s\n", "%r12"); // push r12, because: 0! = 1
             break;
         case LNTWO:
             ex(p->opr.op[0]);
