@@ -8,7 +8,7 @@ void test_print(char* str)
 {
     printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
     printf("\txor\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi (important for printf)
-    printf("\tmovb\t%s,\t%s\n", str, "%sil"); // set the value on the top of the stack as the second parameter
+    printf("\tmovq\t%s,\t%s\n", str, "%rsi"); // set the value on the top of the stack as the second parameter
     printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax (important for printf)
     printf("\tcall\tprintf\n"); // call the printf function
 }
@@ -26,6 +26,7 @@ void compare(const char* ope)
 
 int ex(nodeType *p) {
     int lbl1, lbl2;
+    int lbl3, lbl4;
 
     if (!p) return 0;
     switch(p->type) {
@@ -70,11 +71,51 @@ int ex(nodeType *p) {
             break;
         case PRINT:     
             ex(p->opr.op[0]);
-            printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
+            /*printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
             printf("\txor\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi (important for printf)
             printf("\tpopq\t%s\n", "%rsi"); // set the value on the top of the stack as the second parameter
             printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax (important for printf)
-            printf("\tcall\tprintf\n"); // call the printf function
+            printf("\tcall\tprintf\n"); // call the printf function*/
+
+            printf("\tpopq\t%s\n", "%r11");
+            printf("\txor\t%s,\t%s\n", "$0", "%r14"); // zero out rax
+            printf("jmp\tloop\n");
+
+            printf("loop:\n");
+                printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax
+                printf("\tmovq\t%s,\t%s\n", "%r11", "%rax"); // 4
+                printf("\tmovq\t%s,\t%s\n", "$10", "%r12"); // 4
+                printf("\tcqto\n");
+                printf("\tidivq\t%s\n", "%r12");
+                printf("\tmovq\t%s,\t%s\n", "%rax", "%r11");
+                printf("\taddq\t%s,\t%s\n", "$48", "%rdx");
+                printf("\tpushq\t%s\n", "%rdx");
+                printf("\tincq\t%s\n", "%r14"); // i++
+
+                printf("\tcmpq\t%s,\t%s\n", "$0", "%r11");
+                printf("\tje out\n");
+                printf("\tjmp\tloop\n");
+            
+            printf("out:\n");
+                printf("\tdecq\t%s\n", "%r14"); // i--
+
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rdi"); // stdout
+                printf("\tpopq\t%s\n", "%r15"); // newline
+                printf("\tmovq\t%s,\t%s\n", "%r15", "(%rsi)"); // character
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rdx"); // size
+                printf("\tsyscall\n");
+
+                printf("\tcmpq\t%s,\t%s\n", "$0", "%r14");
+                printf("\tjne out\n");
+
+                // sys write
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rdi"); // stdout
+                printf("\tmovq\t%s,\t%s\n", "$10", "%r15"); // newline
+                printf("\tmovq\t%s,\t%s\n", "%r15", "(%rsi)"); // newline
+                printf("\tmovq\t%s,\t%s\n", "$1", "%rdx"); // size
+                printf("\tsyscall\n");
             break;
         case '=':       
             ex(p->opr.op[1]);
@@ -173,12 +214,12 @@ int ex(nodeType *p) {
                     printf("\tpushq\t%s\n", "%r12");
                     break;
                 case '/': // a/b
-                    printf("\tpopq\t%s\n", "%rax");
-                    printf("\tpopq\t%s\n", "%rdx");
+                    printf("\tpopq\t%s\n", "%r12"); // 2
+                    printf("\tpopq\t%s\n", "%rax"); // 4
                     printf("\tcqto\n");
-                    printf("\tidivl\t%s\n", "%rdx");
+                    printf("\tidivq\t%s\n", "%r12");
                     printf("\tpushq\t%s\n", "%rax"); //pushs quotient first
-                    printf("\tpushq\t%s\n", "%rdx"); //afterwards remainder
+                    //printf("\tpushq\t%s\n", "%rdx"); //afterwards remainder
                     break;
                 case '<': // a < b 
                     compare("l");
