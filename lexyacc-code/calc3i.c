@@ -41,7 +41,7 @@ int ex(nodeType *p) {
             printf("L%03d:\n", lbl1 = lbl++);
             ex(p->opr.op[0]);
             printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-            printf("\tcmpq\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
+            printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
             printf("\tje\tL%03d\n", lbl2 = lbl++);
             ex(p->opr.op[1]);
             printf("\tjmp\tL%03d\n", lbl1);
@@ -101,7 +101,24 @@ int ex(nodeType *p) {
             break;
         case LNTWO:
             ex(p->opr.op[0]);
-            printf("\tlntwo\n");
+            //printf("\tlntwo\n");
+            printf("\tpopq\t%s\n", "%r11"); // 32
+            printf("\txor\t%s,\t%s\n", "%r12", "%r12"); // zero out r12
+            printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // 1
+            printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // zero out r13
+            printf("\tmovq\t%s,\t%s\n", "$0", "%r13"); // 1
+            printf("jmp\tloop\n");
+
+            printf("loop:\n");
+                printf("\tcmpq\t%s,\t%s\n", "%r12", "%r11");
+                printf("\tjle out\n");
+                //a > b
+                printf("\timulq\t%s,\t%s\n", "$2", "%r12");
+                printf("\tincq\t%s\n", "%r13"); // i++
+                printf("\tjmp\tloop\n");
+                //a <= b
+            printf("out:\n");
+                printf("\tpushq\t%s\n", "%r13");
             break;
         default:
             ex(p->opr.op[0]);

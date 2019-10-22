@@ -2,35 +2,25 @@
 .data
 	format:	.asciz	"%d\n"
 .bss
-	a:	.quad 0
-	b:	.quad 0
 .text
 .globl	main
 
 main: 
-	pushq	$5
-	popq	a
-	pushq	$5
-	popq	b
-	pushq	a
-	pushq	b
+	pushq	$2
 	popq	%r11
-	popq	%r12
+	xor	%r12,	%r12
+	movq	$1,	%r12
 	xor	%r13,	%r13
-	cmpq	%r11,	%r12
-	setne	%r13b
+	movq	$0,	%r13
+jmp	loop
+loop:
+	cmpq	%r12,	%r11
+	jle out
+	imulq	$2,	%r12
+	incq	%r13
+	jmp	loop
+out:
 	pushq	%r13
-	popq	%r11
-	cmpb	$0,	%r11b
-	je	L000
-	pushq	$1
-	movq	$format,	%rdi
-	xor	%rsi,	%rsi
-	popq	%rsi
-	xor	%rax,	%rax
-	call	printf
-L000:
-	pushq	$10
 	movq	$format,	%rdi
 	xor	%rsi,	%rsi
 	popq	%rsi
