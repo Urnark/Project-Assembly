@@ -1,3 +1,4 @@
+
 .data
 	format:	.asciz	"%d\n"
 .bss
@@ -18,10 +19,10 @@ L000:
 	popq	%r12
 	cmpq	%r11,	%r12
 	xor	%r13,	%r13
-	setne	%r13
+	setne	%r13b
 	pushq	%r13
 	popq	%r11
-	cmpq	%1,	%r11
+	cmpq	$1,	%r11
 	je	L001
 	pushq	a
 	pushq	b
@@ -29,10 +30,10 @@ L000:
 	popq	%r12
 	cmpq	%r11,	%r12
 	xor	%r13,	%r13
-	setg	%r13
+	setg	%r13b
 	pushq	%r13
 	popq	%r11
-	cmpq	%1,	%r11
+	cmpq	$1,	%r11
 	je	L002
 	pushq	a
 	pushq	b
@@ -62,9 +63,9 @@ L001:
 	pushq	b
 	popq	%r11
 	popq	%r12
-loop:	cmpq	%r11,	$0
+loop:	cmpq	$0,	%r11
 	je then
-	cmpq	%r12,	$0
+	cmpq	$0,	%r12
 	je end
 	cmpq	%r11,	%r12;	jle low
 	subq	%r11,	%r12

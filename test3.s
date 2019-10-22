@@ -10,30 +10,32 @@
 main: 
 	pushq	$5
 	popq	a
-	pushq	$7
+	pushq	$5
 	popq	b
 	pushq	a
 	pushq	b
 	popq	%r11
 	popq	%r12
-	cmpq	%r11,	%r12
 	xor	%r13,	%r13
-	setl	%r13b
+	cmpq	%r11,	%r12
+	setne	%r13b
 	pushq	%r13
 	popq	%r11
-	cmpq	$1,	%r11
+	cmpb	$0,	%r11b
 	je	L000
-	pushq	a
+	pushq	$1
 	movq	$format,	%rdi
+	xor	%rsi,	%rsi
 	popq	%rsi
 	xor	%rax,	%rax
 	call	printf
-	pushq	b
+L000:
+	pushq	$10
 	movq	$format,	%rdi
+	xor	%rsi,	%rsi
 	popq	%rsi
 	xor	%rax,	%rax
-	call	printf
-L000: 
+	call	printf 
 
 	movq	$1,	%rdi
 	call	exit

@@ -4,13 +4,22 @@
 
 static int lbl;
 
+void test_print(char* str)
+{
+    printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
+    printf("\txor\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi (important for printf)
+    printf("\tmovb\t%s,\t%s\n", str, "%sil"); // set the value on the top of the stack as the second parameter
+    printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax (important for printf)
+    printf("\tcall\tprintf\n"); // call the printf function
+}
+
 void compare(const char* ope)
 {
     printf("\tpopq\t%s\n", "%r11"); // b
     printf("\tpopq\t%s\n", "%r12"); // a
+    printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // set %r13 to zero
     printf("\tcmpq\t%s,\t%s\n", "%r11", "%r12"); // compare b and a 
     // Migth be able to change %r13 to %r11 or %r12
-    printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // set %r13 to zero
     printf("\tset%s\t%s\n", ope, "%r13b"); // set %r13 to 1 if a < b else 0
     printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
 }
@@ -32,7 +41,7 @@ int ex(nodeType *p) {
             printf("L%03d:\n", lbl1 = lbl++);
             ex(p->opr.op[0]);
             printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-            printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+            printf("\tcmpq\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
             printf("\tje\tL%03d\n", lbl2 = lbl++);
             ex(p->opr.op[1]);
             printf("\tjmp\tL%03d\n", lbl1);
@@ -43,7 +52,7 @@ int ex(nodeType *p) {
             if (p->opr.nops > 2) {
                 /* if else */
                 printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
                 printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("\tjmp\tL%03d\n", lbl2 = lbl++);
@@ -53,7 +62,7 @@ int ex(nodeType *p) {
             } else {
                 /* if */
                 printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcmpq\t%s,\t%s\n", "$1", "%r11"); // I think this should be here
+                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
                 printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("L%03d:\n", lbl1);
@@ -62,6 +71,7 @@ int ex(nodeType *p) {
         case PRINT:     
             ex(p->opr.op[0]);
             printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
+            printf("\txor\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi (important for printf)
             printf("\tpopq\t%s\n", "%rsi"); // set the value on the top of the stack as the second parameter
             printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax (important for printf)
             printf("\tcall\tprintf\n"); // call the printf function
@@ -80,7 +90,7 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             printf("\tpopq\t%s\n", "%r11"); // n!
             printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // x
-            printf("\tcmpq\t%s,\t%s;\tje out\n", "%r11", "$0");
+            printf("\tcmpq\t%s,\t%s;\tje out\n", "$0", "%r11");
             printf("\tmovq\t%s,\t%s\n", "$1", "%r13");  // i for loop
             printf("loop:\tcmpq\t%s,\t%s;\tjg then\n", "%r11", "%r13"); // compare i <= n
             printf("\timul\t%s,\t%s\n", "%r13", "%r12"); // x = x * i
@@ -98,21 +108,34 @@ int ex(nodeType *p) {
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
                 case GCD:
-                    printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("loop:\tcmpq\t%s,\t%s\n", "%r11", "$0");
-                    printf("\tje then\n"); 
-                    printf("\tcmpq\t%s,\t%s\n", "%r12", "$0");
-                    printf("\tje end\n"); 
-                    printf("\tcmpq\t%s,\t%s;\tjle low\n", "%r11", "%r12"); // compare b and a 
-                    //a > b
-                    printf("\tsubq\t%s,\t%s\n", "%r11", "%r12");
-                    printf("\tjmp loop\n");
-                    //a < b
-                    printf("low:\tsubq\t%s,\t%s\n", "%r12", "%r11");
-                    printf("\tjmp loop\n");
-                    printf("then:\tpushq\t%s\n", "%r12"); //if b = 0, print a
-                    printf("end:\tpushq\t%s\n", "%r11"); //if a = 0, print b
+                    printf("\n\tpopq\t%s\n", "%r10"); // 12
+                    printf("\tpopq\t%s\n", "%r12"); // 6
+                    printf("jmp\tloop\n");
+
+                    printf("loop:\n");
+                        printf("\tcmpq\t%s,\t%s\n", "$0", "%r10");
+                        printf("\tje then\n"); 
+                        printf("\tcmpq\t%s,\t%s\n", "$0", "%r12");
+                        printf("\tje end\n"); 
+                        printf("\tcmpq\t%s,\t%s\n", "%r10", "%r12"); // compare b and a 
+                        printf("\tjle\tlow\n");
+                        //a > b
+                        printf("\tsubq\t%s,\t%s\n", "%r10", "%r12");
+                        printf("\tjmp\tloop\n");
+                        //a <= b
+                        printf("low:\n");
+                            printf("\tsubq\t%s,\t%s\n", "%r12", "%r10");
+                            printf("\tjmp\tloop\n");
+
+                    printf("then:\n");
+                        printf("\tpushq\t%s\n", "%r12"); //if b = 0, print a
+                        printf("\tjmp\tout\n");
+
+                    printf("end:\n");
+                        printf("\tpushq\t%s\n\n", "%r10"); //if a = 0, print b
+                        printf("\tjmp\tout\n");
+                    
+                    printf("out:\n");
                     break;
                 case '+':
                     printf("\tpopq\t%s\n", "%r11");
