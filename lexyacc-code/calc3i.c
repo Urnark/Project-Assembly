@@ -130,7 +130,7 @@ int ex(nodeType *p) {
             break;
         case FACT:
             ex(p->opr.op[0]);
-            printf("\tpopq\t%s\n", "%r11"); // n!
+            /*printf("\tpopq\t%s\n", "%r11"); // n!
             printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // x
             printf("\tcmpq\t%s,\t%s\n", "$0", "%r11");
             printf("\tje\tLF%03d\n", lbl4 = lbl++);
@@ -143,7 +143,10 @@ int ex(nodeType *p) {
             printf("\tjmp\tLF%03d\n", lbl3);
 
             printf("LF%03d:\n", lbl4);
-            printf("\tpushq\t%s\n", "%r12"); // push x
+            printf("\tpushq\t%s\n", "%r12"); // push x*/
+            printf("\tpopq\t%s\n", "%rdi");
+            printf("\tcall\tfact\n");
+            printf("\tpushq\t%s\n", "%rax");
             break;
         case LNTWO:
             ex(p->opr.op[0]);
