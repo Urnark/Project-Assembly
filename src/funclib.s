@@ -3,9 +3,8 @@
 .globl lntwo
 .globl gcd
 
-# first argument %rdi
-# return value %rax
-
+# Compute the factorial from the given argument
+# Returns the result in %rax
 fact:
     movq    $1,     %rax
     cmpq    $0,     %rdi
@@ -20,48 +19,42 @@ factloop:
 factout:
     ret
 
+# Compute the binary logarithm from the given argument
+# Returns the result in %rax
 lntwo:
 	xor	%r12,	%r12
-	movq	$1,	%r12
+	movq	$1,	%r12        # x
 	xor	%r11,	%r11
-	movq	$0,	%r11
+	movq	$0,	%r11        # i
 lntwoloop:
 	cmpq	%r12,	%rdi
-	jle	lntwoout
-	imulq	$2,	%r12
-	incq	%r11
+	jle	lntwoout            # If %rdi is less or equals to x, go out of the loop
+	imulq	$2,	%r12        # x = 2 * x
+	incq	%r11            # i++
 	jmp	lntwoloop
 lntwoout:
-    movq    %r11,     %rax
+    movq    %r11,     %rax  # move i to %rax
 	ret
 
-# r10 == rdi, r12 == rsi
+# Compute the gcd from the two arguments
+# Returns the results in %rax
 gcd:
-    movq    %rdi,   %r10
-    movq    %rsi,   %r12
-gcdloop:
-	cmpq	$0,     %r10
+	cmpq	$0,     %rdi
 	je	gcdthen
-	cmpq	$0,     %r12
+	cmpq	$0,     %rsi
 	je	gcdend
-	cmpq	%r10,	%r12
+	cmpq	%rdi,	%rsi
 	jle	gcdlow
-	subq	%r10,	%r12
-	jmp	gcdloop
+    # a > b
+	subq	%rdi,	%rsi
+	jmp	gcd
+    # a <= b
 gcdlow:
-	subq	%r12,	%r10
-	jmp	gcdloop
+	subq	%rsi,	%rdi
+	jmp	gcd
 gcdthen:
-    movq    %r12,   %rax
-    xorq   %r12,   %r12
-    xorq   %r10,   %r10
-    xorq   %rdi,   %rdi
-    xorq   %rsi,   %rsi
+    movq    %rsi,   %rax    # if b == 0, return a
 	ret
 gcdend:
-    movq    %r10,   %rax
-    xorq   %r12,   %r12
-    xorq   %r10,   %r10
-    xorq   %rdi,   %rdi
-    xorq   %rsi,   %rsi
+    movq    %r10,   %rax    # if a == 0, return b
     ret
