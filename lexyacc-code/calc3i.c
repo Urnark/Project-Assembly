@@ -4,23 +4,26 @@
 
 static int lbl;
 
-void test_print(char* str)
-{
-    printf("\tmovq\t%s,\t%s\n", "$format", "%rdi"); // set pointer to format string as first parameter to printf
-    printf("\txor\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi (important for printf)
-    printf("\tmovq\t%s,\t%s\n", str, "%rsi"); // set the value on the top of the stack as the second parameter
-    printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax (important for printf)
-    printf("\tcall\tprintf\n"); // call the printf function
-}
-
+/**
+ * Function for comparison
+ * 
+ * ope: variable for each of the different comparison types
+ * 
+ * types:
+ *      l: <
+ *      g: >
+ *      le: <=
+ *      ge: >=
+ *      e: ==
+ *      ne: !=
+ * */
 void compare(const char* ope)
 {
-    printf("\tpopq\t%s\n", "%r11"); // b
-    printf("\tpopq\t%s\n", "%r12"); // a
+    printf("\tpopq\t%s\n", "%r11");
+    printf("\tpopq\t%s\n", "%r12");
     printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // set %r13 to zero
-    printf("\tcmpq\t%s,\t%s\n", "%r11", "%r12"); // compare b and a 
-    // Migth be able to change %r13 to %r11 or %r12
-    printf("\tset%s\t%s\n", ope, "%r13b"); // set %r13 to 1 if a < b else 0
+    printf("\tcmpq\t%s,\t%s\n", "%r11", "%r12"); // compare b and a
+    printf("\tset%s\t%s\n", ope, "%r13b"); // set %r13 to 1 if type is true else 0
     printf("\tpushq\t%s\n", "%r13"); // push %r13 to the stack
 }
 
@@ -41,8 +44,8 @@ int ex(nodeType *p) {
         case WHILE:
             printf("L%03d:\n", lbl1 = lbl++);
             ex(p->opr.op[0]);
-            printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-            printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
+            printf("\tpopq\t%s\n", "%r11");
+            printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b");
             printf("\tje\tL%03d\n", lbl2 = lbl++);
             ex(p->opr.op[1]);
             printf("\tjmp\tL%03d\n", lbl1);
@@ -52,8 +55,8 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             if (p->opr.nops > 2) {
                 /* if else */
-                printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
+                printf("\tpopq\t%s\n", "%r11");
+                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b");
                 printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("\tjmp\tL%03d\n", lbl2 = lbl++);
@@ -62,8 +65,8 @@ int ex(nodeType *p) {
                 printf("L%03d:\n", lbl2);
             } else {
                 /* if */
-                printf("\tpopq\t%s\n", "%r11"); // I think this should be here
-                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b"); // I think this should be here
+                printf("\tpopq\t%s\n", "%r11");
+                printf("\tcmpb\t%s,\t%s\n", "$0", "%r11b");
                 printf("\tje\tL%03d\n", lbl1 = lbl++);
                 ex(p->opr.op[1]);
                 printf("L%03d:\n", lbl1);
@@ -79,38 +82,43 @@ int ex(nodeType *p) {
             printf("\tcall\tprintf\n"); // call the printf function*/
 
             // With syscall
-            printf("\tpopq\t%s\n", "%r11");
-            printf("\txor\t%s,\t%s\n", "$0", "%r14"); // zero out rax
+            printf("\tpopq\t%s\n", "%r9"); // get value to print from the top of the stack
+            printf("\txor\t%s,\t%s\n", "%r14", "%r14"); // zero out r14 used for counting how many character to print
 
+            // Loop to get single digits out of a number and convert it to ascii code
             printf("LF%03d:\n", lbl3 = lbl++);
                 printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax
-                printf("\tmovq\t%s,\t%s\n", "%r11", "%rax"); // 4
-                printf("\tmovq\t%s,\t%s\n", "$10", "%r12"); // 4
+                // Divide the number to print by 10
+                printf("\tmovq\t%s,\t%s\n", "%r9", "%rax");
+                printf("\tmovq\t%s,\t%s\n", "$10", "%r12");
                 printf("\tcqto\n");
                 printf("\tidivq\t%s\n", "%r12");
-                printf("\tmovq\t%s,\t%s\n", "%rax", "%r11");
-                printf("\taddq\t%s,\t%s\n", "$48", "%rdx");
-                printf("\tpushq\t%s\n", "%rdx");
+                printf("\tmovq\t%s,\t%s\n", "%rax", "%r9"); // Save quotient in r9
+                printf("\taddq\t%s,\t%s\n", "$48", "%rdx"); // Convert integer(reminder) to ascii
+                printf("\tpushq\t%s\n", "%rdx"); // Push ascii character to the stack
                 printf("\tincq\t%s\n", "%r14"); // i++
 
-                printf("\tcmpq\t%s,\t%s\n", "$0", "%r11");
+                // If quotient is 0 go out of the loop
+                printf("\tcmpq\t%s,\t%s\n", "$0", "%r9");
                 printf("\tje\tLF%03d\n", lbl4 = lbl++);
                 printf("\tjmp\tLF%03d\n", lbl3);
             
             printf("LF%03d:\n", lbl4);
                 printf("\tdecq\t%s\n", "%r14"); // i--
 
+                // Pop ascii character from the stack and print it to stdout
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdi"); // stdout
-                printf("\tpopq\t%s\n", "%r15"); // newline
-                printf("\tmovq\t%s,\t%s\n", "%r15", "(%rsi)"); // character
+                printf("\tmovq\t%s,\t%s\n", "$mychar", "%rsi"); // character
+                printf("\tpopq\t%s\n", "(%rsi)"); // character
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdx"); // size
                 printf("\tsyscall\n");
 
+                // Check how many characters are left on the stack
                 printf("\tcmpq\t%s,\t%s\n", "$0", "%r14");
                 printf("\tjne\tLF%03d\n", lbl4);
 
-                // sys write
+                // Print newline character at the end
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdi"); // stdout
                 printf("\tmovq\t%s,\t%s\n", "$10", "%r15"); // newline
@@ -122,7 +130,7 @@ int ex(nodeType *p) {
             ex(p->opr.op[1]);
             printf("\tpopq\t%c\n", p->opr.op[0]->id.i + 'a');
             break;
-        case UMINUS:    
+        case UMINUS: // Convert a positive number to a negative number
             ex(p->opr.op[0]);
             printf("\tpopq\t%s\n", "%r11"); 
             printf("\tnegq\t%s\n", "%r11");
@@ -130,78 +138,25 @@ int ex(nodeType *p) {
             break;
         case FACT:
             ex(p->opr.op[0]);
-            printf("\tpopq\t%s\n", "%r11"); // n!
-            printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // x
-            printf("\tcmpq\t%s,\t%s\n", "$0", "%r11");
-            printf("\tje\tLF%03d\n", lbl4 = lbl++);
-            printf("\tmovq\t%s,\t%s\n", "$1", "%r13");  // i for loop
-            printf("LF%03d:\n", lbl3 = lbl++);
-            printf("\tcmpq\t%s,\t%s\n", "%r11", "%r13"); // compare i <= n
-            printf("\tjg\tLF%03d\n", lbl4);
-            printf("\timul\t%s,\t%s\n", "%r13", "%r12"); // x = x * i
-            printf("\tincq\t%s\n", "%r13"); // i++
-            printf("\tjmp\tLF%03d\n", lbl3);
-
-            printf("LF%03d:\n", lbl4);
-            printf("\tpushq\t%s\n", "%r12"); // push x
+            printf("\tpopq\t%s\n", "%rdi");
+            printf("\tcall\tfact\n");
+            printf("\tpushq\t%s\n", "%rax");
             break;
         case LNTWO:
             ex(p->opr.op[0]);
-            printf("\tpopq\t%s\n", "%r11"); // 32
-            printf("\txor\t%s,\t%s\n", "%r12", "%r12"); // zero out r12
-            printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // 1
-            printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // zero out r13
-            printf("\tmovq\t%s,\t%s\n", "$0", "%r13"); // 1
-
-            printf("LF%03d:\n", lbl4 = lbl++);
-                printf("\tcmpq\t%s,\t%s\n", "%r12", "%r11");
-                printf("\tjle\tLF%03d\n", lbl3 = lbl++);
-                //a > b
-                printf("\timulq\t%s,\t%s\n", "$2", "%r12");
-                printf("\tincq\t%s\n", "%r13"); // i++
-                printf("\tjmp\tLF%03d\n", lbl4);
-                //a <= b
-            printf("LF%03d:\n", lbl3);
-                printf("\tpushq\t%s\n", "%r13");
+            printf("\tpopq\t%s\n", "%rdi");
+            printf("\tcall\tlntwo\n");
+            printf("\tpushq\t%s\n", "%rax");
             break;
         default:
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
                 case GCD:
-                    printf("\n\tpopq\t%s\n", "%r10"); // 12
-                    printf("\tpopq\t%s\n", "%r12"); // 6
-
-                    int loop = lbl++;
-                    int low = lbl++;
-                    int then = lbl++;
-                    int end = lbl++;
-                    int out = lbl++;
-
-                    printf("LF%03d:\n", loop);
-                        printf("\tcmpq\t%s,\t%s\n", "$0", "%r10");
-                        printf("\tje\tLF%03d\n", then);
-                        printf("\tcmpq\t%s,\t%s\n", "$0", "%r12");
-                        printf("\tje\tLF%03d\n", end);
-                        printf("\tcmpq\t%s,\t%s\n", "%r10", "%r12"); // compare b and a 
-                        printf("\tjle\tLF%03d\n", low);
-                        //a > b
-                        printf("\tsubq\t%s,\t%s\n", "%r10", "%r12");
-                        printf("\tjmp\tLF%03d\n", loop);
-                        //a <= b
-                        printf("LF%03d:\n", low);
-                            printf("\tsubq\t%s,\t%s\n", "%r12", "%r10");
-                            printf("\tjmp\tLF%03d\n", loop);
-
-                    printf("LF%03d:\n", then);
-                        printf("\tpushq\t%s\n", "%r12"); //if b = 0, print a
-                        printf("\tjmp\tLF%03d\n", out);
-
-                    printf("LF%03d:\n", end);
-                        printf("\tpushq\t%s\n\n", "%r10"); //if a = 0, print b
-                        printf("\tjmp\tLF%03d\n", out);
-                    
-                    printf("LF%03d:\n", out);
+                    printf("\n\tpopq\t%s\n", "%rdi");
+                    printf("\tpopq\t%s\n", "%rsi");
+                    printf("\tcall\tgcd\n");
+                    printf("\tpushq\t%s\n", "%rax");
                     break;
                 case '+':
                     printf("\tpopq\t%s\n", "%r11");
@@ -209,9 +164,9 @@ int ex(nodeType *p) {
                     printf("\taddq\t%s,\t%s\n", "%r11", "%r12");
                     printf("\tpushq\t%s\n", "%r12");
                     break;
-                case '-': // a-b
-                    printf("\tpopq\t%s\n", "%r11"); //b
-                    printf("\tpopq\t%s\n", "%r12"); //a
+                case '-':
+                    printf("\tpopq\t%s\n", "%r11");
+                    printf("\tpopq\t%s\n", "%r12");
                     printf("\tsubq\t%s,\t%s\n", "%r11", "%r12");
                     printf("\tpushq\t%s\n", "%r12");
                     break;
@@ -221,41 +176,31 @@ int ex(nodeType *p) {
                     printf("\timul\t%s,\t%s\n", "%r11", "%r12");
                     printf("\tpushq\t%s\n", "%r12");
                     break;
-                case '/': // a/b
-                    printf("\tpopq\t%s\n", "%r12"); // 2
-                    printf("\tpopq\t%s\n", "%rax"); // 4
+                case '/': // Divide rax by r12 and push the qoutient to the top of the stack
+                    // remainder is ignored due the use of integers
+                    printf("\tpopq\t%s\n", "%r12");
+                    printf("\tpopq\t%s\n", "%rax");
                     printf("\tcqto\n");
                     printf("\tidivq\t%s\n", "%r12");
-                    printf("\tpushq\t%s\n", "%rax"); //pushs quotient first
-                    //printf("\tpushq\t%s\n", "%rdx"); //afterwards remainder
+                    printf("\tpushq\t%s\n", "%rax"); //pushs quotient
                     break;
-                case '<': // a < b 
+                case '<':
                     compare("l");
                     break;
-                case '>': // a > b 
+                case '>':
                     compare("g");
                     break;
-                case GE: // a >= b
+                case GE:
                     compare("ge");
                     break;
                 case LE:
                     compare("le");
                     break;
-                case NE: // a != b
+                case NE:
                     compare("ne");
                     break;
                 case EQ:
                     compare("e");
-                    /*printf("\tpopq\t%s\n", "%r11"); // b
-                    printf("\tpopq\t%s\n", "%r12"); // a
-                    printf("\txor\t%s,\t%s\n", "%r13", "r13"); // set %r13 to zero
-                    printf("\tcmpq\t%s,\t%s\n", "%r11", "%12"); // compare b and a
-                    printf("\tje then\n"); // jump condition
-                    printf("\tmovq\t%s,\t%s\n", "$1", "%r13");
-                    printf("\tjmp out\n"); 
-                    printf("then:\tmovq\t%s,\t%s\n", "$0", "%r13");
-                    printf("\tjmp out\n"); 
-                    printf("\tout:pushq\t%s\n", "%r13");*/
                     break;
             }
         }
