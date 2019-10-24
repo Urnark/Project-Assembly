@@ -79,21 +79,22 @@ int ex(nodeType *p) {
             printf("\tcall\tprintf\n"); // call the printf function*/
 
             // With syscall
-            printf("\tpopq\t%s\n", "%r11");
+            printf("\tpopq\t%s\n", "%r9"); // i
+            printf("\tmovq\t%s,\t%s\n", "%r9", "%r10"); // 4
             printf("\txor\t%s,\t%s\n", "$0", "%r14"); // zero out rax
 
             printf("LF%03d:\n", lbl3 = lbl++);
                 printf("\txor\t%s,\t%s\n", "%rax", "%rax"); // zero out rax
-                printf("\tmovq\t%s,\t%s\n", "%r11", "%rax"); // 4
+                printf("\tmovq\t%s,\t%s\n", "%r9", "%rax"); // 4
                 printf("\tmovq\t%s,\t%s\n", "$10", "%r12"); // 4
                 printf("\tcqto\n");
                 printf("\tidivq\t%s\n", "%r12");
-                printf("\tmovq\t%s,\t%s\n", "%rax", "%r11");
+                printf("\tmovq\t%s,\t%s\n", "%rax", "%r9");
                 printf("\taddq\t%s,\t%s\n", "$48", "%rdx");
                 printf("\tpushq\t%s\n", "%rdx");
                 printf("\tincq\t%s\n", "%r14"); // i++
 
-                printf("\tcmpq\t%s,\t%s\n", "$0", "%r11");
+                printf("\tcmpq\t%s,\t%s\n", "$0", "%r9");
                 printf("\tje\tLF%03d\n", lbl4 = lbl++);
                 printf("\tjmp\tLF%03d\n", lbl3);
             
@@ -102,13 +103,15 @@ int ex(nodeType *p) {
 
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdi"); // stdout
-                printf("\tpopq\t%s\n", "%r15"); // newline
-                printf("\tmovq\t%s,\t%s\n", "%r15", "(%rsi)"); // character
+                printf("\tmovq\t%s,\t%s\n", "$mychar", "%rsi"); // character
+                printf("\tpopq\t%s\n", "(%rsi)"); // character
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdx"); // size
                 printf("\tsyscall\n");
 
                 printf("\tcmpq\t%s,\t%s\n", "$0", "%r14");
                 printf("\tjne\tLF%03d\n", lbl4);
+
+                //printf("\tpopq\t%s\n", "%r10"); // character
 
                 // sys write
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rax"); // sys_write
@@ -117,6 +120,8 @@ int ex(nodeType *p) {
                 printf("\tmovq\t%s,\t%s\n", "%r15", "(%rsi)"); // newline
                 printf("\tmovq\t%s,\t%s\n", "$1", "%rdx"); // size
                 printf("\tsyscall\n");
+
+            printf("\tmovq\t%s,\t%s\n", "%r9", "%rax"); // 4
             break;
         case '=':       
             ex(p->opr.op[1]);
@@ -150,7 +155,7 @@ int ex(nodeType *p) {
             break;
         case LNTWO:
             ex(p->opr.op[0]);
-            printf("\tpopq\t%s\n", "%r11"); // 32
+            /*printf("\tpopq\t%s\n", "%r11"); // 32
             printf("\txor\t%s,\t%s\n", "%r12", "%r12"); // zero out r12
             printf("\tmovq\t%s,\t%s\n", "$1", "%r12"); // 1
             printf("\txor\t%s,\t%s\n", "%r13", "%r13"); // zero out r13
@@ -165,14 +170,17 @@ int ex(nodeType *p) {
                 printf("\tjmp\tLF%03d\n", lbl4);
                 //a <= b
             printf("LF%03d:\n", lbl3);
-                printf("\tpushq\t%s\n", "%r13");
+                printf("\tpushq\t%s\n", "%r13");*/
+            printf("\tpopq\t%s\n", "%rdi");
+            printf("\tcall\tlntwo\n");
+            printf("\tpushq\t%s\n", "%rax");
             break;
         default:
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
             switch(p->opr.oper) {
                 case GCD:
-                    printf("\n\tpopq\t%s\n", "%r10"); // 12
+                    /*printf("\n\tpopq\t%s\n", "%r10"); // 12
                     printf("\tpopq\t%s\n", "%r12"); // 6
 
                     int loop = lbl++;
@@ -204,7 +212,16 @@ int ex(nodeType *p) {
                         printf("\tpushq\t%s\n\n", "%r10"); //if a = 0, print b
                         printf("\tjmp\tLF%03d\n", out);
                     
-                    printf("LF%03d:\n", out);
+                    printf("LF%03d:\n", out);*/
+                    printf("\txorq\t%s,\t%s\n", "%rdi", "%rdi"); // zero out rdi
+                    printf("\n\tpopq\t%s\n", "%rdi");
+                    printf("\txor\t%s,\t%s\n", "%rdx", "%rdx"); // zero out rsi
+                    printf("\tpopq\t%s\n", "%rsi");
+                    printf("\txorq\t%s,\t%s\n", "%rax", "%rax"); // zero out rax
+
+                    printf("\tcall\tgcd\n");
+                    printf("\tpushq\t%s\n", "%rax");
+                    printf("\txorq\t%s,\t%s\n", "%rsi", "%rsi"); // zero out rsi
                     break;
                 case '+':
                     printf("\tpopq\t%s\n", "%r11");

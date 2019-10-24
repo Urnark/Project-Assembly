@@ -4,17 +4,62 @@
         mychar:	.asciz	"00000000"
 .bss
 	a:	.quad 0
+	b:	.quad 0
 .text
 .globl	main
 
 main: 
-	pushq	$1
+	pushq	$732
 	popq	a
+	pushq	$2684
+	popq	b
+L000:
+	pushq	a
+	pushq	b
+	popq	%r11
+	popq	%r12
+	xor	%r13,	%r13
+	cmpq	%r11,	%r12
+	setne	%r13b
+	pushq	%r13
+	popq	%r11
+	cmpb	$0,	%r11b
+	je	L001
+	pushq	a
+	pushq	b
+	popq	%r11
+	popq	%r12
+	xor	%r13,	%r13
+	cmpq	%r11,	%r12
+	setg	%r13b
+	pushq	%r13
+	popq	%r11
+	cmpb	$0,	%r11b
+	je	L002
+	pushq	a
+	pushq	b
+	popq	%r11
+	popq	%r12
+	subq	%r11,	%r12
+	pushq	%r12
+	popq	a
+	jmp	L003
+L002:
+	pushq	b
+	pushq	a
+	popq	%r11
+	popq	%r12
+	subq	%r11,	%r12
+	pushq	%r12
+	popq	b
+L003:
+	jmp	L000
+L001:
 	pushq	a
 	popq	%r9
 	movq	%r9,	%r10
 	xor	$0,	%r14
-LF000:
+LF004:
 	xor	%rax,	%rax
 	movq	%r9,	%rax
 	movq	$10,	%r12
@@ -25,9 +70,9 @@ LF000:
 	pushq	%rdx
 	incq	%r14
 	cmpq	$0,	%r9
-	je	LF001
-	jmp	LF000
-LF001:
+	je	LF005
+	jmp	LF004
+LF005:
 	decq	%r14
 	movq	$1,	%rax
 	movq	$1,	%rdi
@@ -36,7 +81,7 @@ LF001:
 	movq	$1,	%rdx
 	syscall
 	cmpq	$0,	%r14
-	jne	LF001
+	jne	LF005
 	movq	$1,	%rax
 	movq	$1,	%rdi
 	movq	$10,	%r15
@@ -45,10 +90,20 @@ LF001:
 	syscall
 	movq	%r9,	%rax
 	pushq	a
+	pushq	b
+	xorq	%rdi,	%rdi
+
+	popq	%rdi
+	xor	%rdx,	%rdx
+	popq	%rsi
+	xorq	%rax,	%rax
+	call	gcd
+	pushq	%rax
+	xorq	%rsi,	%rsi
 	popq	%r9
 	movq	%r9,	%r10
 	xor	$0,	%r14
-LF002:
+LF006:
 	xor	%rax,	%rax
 	movq	%r9,	%rax
 	movq	$10,	%r12
@@ -59,9 +114,9 @@ LF002:
 	pushq	%rdx
 	incq	%r14
 	cmpq	$0,	%r9
-	je	LF003
-	jmp	LF002
-LF003:
+	je	LF007
+	jmp	LF006
+LF007:
 	decq	%r14
 	movq	$1,	%rax
 	movq	$1,	%rdi
@@ -70,7 +125,7 @@ LF003:
 	movq	$1,	%rdx
 	syscall
 	cmpq	$0,	%r14
-	jne	LF003
+	jne	LF007
 	movq	$1,	%rax
 	movq	$1,	%rdi
 	movq	$10,	%r15
